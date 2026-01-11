@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ökosystem See – Trophieebenen (Drag & Drop)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e7eefc;
+      --muted:#aab6d6;
+      --accent:#63b3ff;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,.12);
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1000px 600px at 20% 0%, rgba(99,179,255,.18), transparent 60%),
+        radial-gradient(800px 500px at 80% 20%, rgba(52,211,153,.12), transparent 55%),
+        linear-gradient(180deg, #060b16 0%, var(--bg) 40%, #060b16 100%);
+      min-height:100vh;
+    }
+
+    header{
+      padding:22px 18px 10px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+
+    h1{
+      margin:0 0 6px;
+      font-size:22px;
+      letter-spacing:.2px;
+    }
+
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 18px 28px;
+      display:grid;
+      grid-template-columns: 1.05fr 1.95fr;
+      gap:14px;
+    }
+
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr;}
+    }
+
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .panelHeader{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .panelHeader h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.25px;
+      color:#dbe7ff;
+    }
+
+    .panelHeader .hint{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:flex-end;
+      align-items:center;
+      margin-top:2px;
+    }
+
+    button{
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+      transition:transform .06s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-touch-callout:none;
+      touch-action: pan-y;
+    }
+
+    button:hover{background:rgba(255,255,255,.09)}
+    button:active{transform:translateY(1px)}
+
+    button.primary{
+      background:rgba(99,179,255,.18);
+      border-color:rgba(99,179,255,.35);
+    }
+    button.primary:hover{background:rgba(99,179,255,.24)}
+
+    button.warn{
+      background:rgba(251,191,36,.14);
+      border-color:rgba(251,191,36,.32);
+    }
+
+    button.bad{
+      background:rgba(251,113,133,.14);
+      border-color:rgba(251,113,133,.32);
+    }
+
+    .content{ padding:14px; }
+
+    /* cards */
+    .pool{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-content:flex-start;
+      min-height:120px;
+    }
+
+    .card{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:10px 10px;
+      min-width:140px;
+      max-width:220px;
+      cursor:grab;
+      user-select:none;
+      box-shadow: 0 8px 18px rgba(0,0,0,.22);
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+      position:relative;
+    }
+
+    .card:hover{transform:translateY(-1px); border-color:rgba(99,179,255,.35)}
+    .card:active{cursor:grabbing; transform:translateY(0)}
+
+    /* Touch/iPad Drag-Preview */
+    .card.dragging{opacity:.25}
+    .drag-ghost{
+      position:fixed;
+      left:0;
+      top:0;
+      z-index:9999;
+      pointer-events:none;
+      opacity:.92;
+      transform:translate3d(-9999px,-9999px,0);
+    }
+    .drag-ghost .mini{display:none;}
+    .drag-ghost{filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));}
+
+    .card .name{font-size:13px; font-weight:650; letter-spacing:.15px; padding-right:64px; line-height:1.25;}
+    .card .mini{font-size:11px; color:var(--muted); margin-top:2px;}
+
+    .badge{
+      position:absolute;
+      top:8px;
+      right:8px;
+      font-size:10px;
+      padding:4px 7px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      display:none;
+    }
+.card.correct{border-color: rgba(52,211,153,.55); background:rgba(52,211,153,.10)}
+    .card.wrong{border-color: rgba(251,113,133,.55); background:rgba(251,113,133,.10)}
+
+    /* drop zones */
+    .zones{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    @media (max-width: 980px){
+      .zones{grid-template-columns:1fr;}
+    }
+
+    .zone{
+      border:1px dashed rgba(255,255,255,.18);
+      background:rgba(0,0,0,.14);
+      border-radius:16px;
+      min-height:160px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .zone.dragOver{
+      border-color:rgba(99,179,255,.55);
+      background:rgba(99,179,255,.10);
+    }
+
+    .zoneHead{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .zoneTitle{
+      font-size:13px;
+      font-weight:750;
+      letter-spacing:.2px;
+    }
+
+    .zoneSub{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .zoneBody{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-content:flex-start;
+      min-height:90px;
+    }
+
+    /* status bar */
+    .status{
+      padding:12px 14px;
+      border-top:1px solid var(--border);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      background:rgba(0,0,0,.14);
+    }
+
+    .status .left{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+    }
+
+    .pill.good{color:#b9ffe4; border-color:rgba(52,211,153,.35); background:rgba(52,211,153,.10)}
+    .pill.bad{color:#ffd1d9; border-color:rgba(251,113,133,.35); background:rgba(251,113,133,.10)}
+    .pill.warn{color:#ffe8b5; border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.10)}
+
+    .footerNote{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 18px 26px;
+      color:rgba(255,255,255,.5);
+      font-size:11px;
+      line-height:1.5;
+    }
+
+    .kbd{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      color:rgba(255,255,255,.7);
+    }
+
+    /* Hover-Bildvorschau (Mouse) */
+    .hoverTip{
+      position:fixed;
+      left:-9999px;
+      top:-9999px;
+      width:min(340px, 78vw);
+      z-index:10050;
+      opacity:0;
+      transform:translate3d(0,0,0);
+      transition:opacity .08s ease;
+      pointer-events:none;
+    }
+    .hoverTip.show{opacity:1; pointer-events:auto;}
+    .hoverTip .htBox{
+      background:rgba(6,11,22,.92);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.55);
+      overflow:hidden;
+      backdrop-filter: blur(6px);
+    }
+    .hoverTip img{
+      width:100%;
+      height:auto;
+      display:block;
+      background:rgba(255,255,255,.04);
+    }
+    .hoverTip .htBody{padding:10px 12px;}
+    .hoverTip .htTitle{font-size:12px; font-weight:750; letter-spacing:.15px; margin:0 0 4px;}
+    .hoverTip .htMeta{font-size:11px; color:rgba(255,255,255,.65); line-height:1.35;}
+    .hoverTip .htMeta a{color:rgba(99,179,255,.92); text-decoration:none;}
+    .hoverTip .htMeta a:hover{text-decoration:underline;}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ökosystem See: Trophieebenen zuordnen</h1>
+    <p class="subtitle">
+      Drag-and-Drop: Ordne die Organismen den Trophieebenen zu (Produzenten, Konsumenten 1.–3. Ordnung). Klicke anschließend auf <b>Prüfen</b>.
+      Hinweis: Die Einordnung ist für den Unterricht vereinfacht.
+    </p>
+  </header>
+
+  <main class="wrap">
+    <!-- LEFT: Pool -->
+    <section class="panel" aria-label="Kartenpool">
+      <div class="panelHeader">
+        <div>
+          <h2>Karten</h2>
+          <p class="hint">Ziehe Karten in die passende Box. Zurückziehen geht immer.</p>
+        </div>
+        <div class="controls">
+<button id="btnReset" class="bad" title="Alles zurück in den Pool">Zurücksetzen</button>
+</div>
+      </div>
+      <div class="content">
+        <div id="pool" class="pool" role="list" aria-label="Kartenpool"></div>
+      </div>
+      <div class="status">
+        <div class="left">
+          <div id="scorePill" class="pill">Punkte: –</div>
+          <div id="cardsPill" class="pill">Karten: –</div>
+        </div>
+        <div class="controls">
+          <button id="btnCheck" class="primary" title="Überprüft Zuordnung">Prüfen</button>
+</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Zones -->
+    <section class="panel" aria-label="Zuordnung">
+      <div class="panelHeader">
+        <div>
+          <h2>Zuordnung: Trophieebenen</h2>
+          <p class="hint">Drop-Zonen: Produzenten und Konsumenten (1.–3. Ordnung).</p>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="zones" aria-label="Drop-Zonen">
+          <div class="zone" data-zone="producer" aria-label="Produzenten" tabindex="0">
+            <div class="zoneHead">
+              <div>
+                <div class="zoneTitle">Produzenten</div>
+                <div class="zoneSub">Autotroph: Pflanzen, Algen</div>
+              </div>
+              <div class="pill" id="count-producer">0</div>
+            </div>
+            <div class="zoneBody" id="zone-producer"></div>
+          </div>
+
+          <div class="zone" data-zone="c1" aria-label="Konsumenten 1. Ordnung" tabindex="0">
+            <div class="zoneHead">
+              <div>
+                <div class="zoneTitle">Konsumenten 1. Ordnung</div>
+                <div class="zoneSub">Herbivor/Detritivor: fressen Produzenten</div>
+              </div>
+              <div class="pill" id="count-c1">0</div>
+            </div>
+            <div class="zoneBody" id="zone-c1"></div>
+          </div>
+
+          <div class="zone" data-zone="c2" aria-label="Konsumenten 2. Ordnung" tabindex="0">
+            <div class="zoneHead">
+              <div>
+                <div class="zoneTitle">Konsumenten 2. Ordnung</div>
+                <div class="zoneSub">Karnivor/Omnivor: fressen K1</div>
+              </div>
+              <div class="pill" id="count-c2">0</div>
+            </div>
+            <div class="zoneBody" id="zone-c2"></div>
+          </div>
+
+          <div class="zone" data-zone="c3" aria-label="Konsumenten 3. Ordnung" tabindex="0">
+            <div class="zoneHead">
+              <div>
+                <div class="zoneTitle">Konsumenten 3. Ordnung</div>
+                <div class="zoneSub">Top-Prädatoren: fressen K2</div>
+              </div>
+              <div class="pill" id="count-c3">0</div>
+            </div>
+            <div class="zoneBody" id="zone-c3"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footerNote">
+    <b>Hinweis:</b> Je nach Art/Alter/Größe können Einordnungen variieren.
+    Das hier ist eine bewusst vereinfachte, schulgeeignete Version.
+    Organismen kannst du im JS-Array <span class="kbd">ORGANISMS</span> anpassen.
+    <br />
+    <b>Bilder:</b> Beim Überfahren einer Karte mit der Maus wird eine Bildvorschau angezeigt. Die verwendeten Bilder stammen von Wikimedia Commons (freie Lizenzen; Details über den Quellen-Link in der Vorschau).
+  </div>
+
+  <!-- Hover-Vorschau (wird per JS befüllt) -->
+  <div id="hoverTip" class="hoverTip" aria-hidden="true">
+    <div class="htBox" role="dialog" aria-label="Bildvorschau">
+      <img id="hoverImg" alt="" loading="lazy" />
+      <div class="htBody">
+        <p class="htTitle" id="hoverTitle"></p>
+        <div class="htMeta">
+          Quelle: <a id="hoverSource" href="#" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
+          <span> (Lizenz siehe Quelle)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ======= Daten =======
+    const ORGANISMS = [
+      // Produzenten
+      { id: "phyto", name: "Phytoplankton (Algen)", correct: "producer" },
+      { id: "waterpest", name: "Wasserpest (Elodea)", correct: "producer" },
+      { id: "seerose", name: "Seerose", correct: "producer" },
+      { id: "schilf", name: "Schilf", correct: "producer" },
+
+      // Konsumenten 1. Ordnung
+      { id: "daphnia", name: "Wasserfloh (Daphnia)", correct: "c1" },
+      { id: "zoopl", name: "Zooplankton (z.B. Rädertierchen)", correct: "c1" },
+      { id: "snail", name: "Posthornschnecke", correct: "c1" },
+      { id: "mussel", name: "Muschel (z.B. Teichmuschel)", correct: "c1" },
+      { id: "tadpole", name: "Kaulquappe (viele Arten)", correct: "c1" },
+      { id: "midge", name: "Zuckmückenlarve", correct: "c1" },
+
+      // Konsumenten 2. Ordnung
+      { id: "stickle", name: "Stichling", correct: "c2" },
+      { id: "roach", name: "Rotauge (kleiner Fisch)", correct: "c2" },
+      { id: "dragon", name: "Libellenlarve", correct: "c2" },
+      { id: "dytiscus", name: "Gelbrandkäfer (Larve/Imago)", correct: "c2" },
+
+      // Konsumenten 3. Ordnung
+      { id: "pike", name: "Hecht", correct: "c3" },
+      { id: "corm", name: "Kormoran", correct: "c3" },
+      { id: "heron", name: "Graureiher", correct: "c3" },
+      { id: "otter", name: "Fischotter", correct: "c3" },
+    ];
+
+    const ZONE_LABEL = {
+      producer: "Produzent",
+      c1: "K1",
+      c2: "K2",
+      c3: "K3"
+    };
+
+    // ======= Bildquellen (frei nutzbar über Wikimedia Commons; Lizenzdetails auf der Dateiseite) =======
+    // Direktlink wird über Special:FilePath gebaut. Breite wird (wenn unterstützt) über ?width=... angefragt.
+    const IMAGE_MAP = {
+      phyto:   { file: "Phytoplankton.jpg", page: "https://commons.wikimedia.org/wiki/File:Phytoplankton.jpg" },
+      waterpest:{ file: "Elodea_canadensis.jpg", page: "https://commons.wikimedia.org/wiki/File:Elodea_canadensis.jpg" },
+      seerose: { file: "Nymphaea_alba-Flower.jpg", page: "https://commons.wikimedia.org/wiki/File:Nymphaea_alba-Flower.jpg" },
+      schilf:  { file: "Phragmites_Australis_(240719361).jpeg", page: "https://commons.wikimedia.org/wiki/File:Phragmites_Australis_(240719361).jpeg" },
+
+      daphnia: { file: "Daphnia_magna_-_NTNU.jpg", page: "https://commons.wikimedia.org/wiki/File:Daphnia_magna_-_NTNU.jpg" },
+      zoopl:   { file: "Brachionuscalyciflorus.jpg", page: "https://commons.wikimedia.org/wiki/File:Brachionuscalyciflorus.jpg" },
+      snail:   { file: "Planorbarius_corneus_001.JPG", page: "https://commons.wikimedia.org/wiki/File:Planorbarius_corneus_001.JPG" },
+      mussel:  { file: "Anodonta_anatina_01.jpg", page: "https://commons.wikimedia.org/wiki/File:Anodonta_anatina_01.jpg" },
+      tadpole: { file: "Kaulquappen_Tadpole_1.JPG", page: "https://commons.wikimedia.org/wiki/File:Kaulquappen_Tadpole_1.JPG" },
+      midge:   { file: "Mikrofoto.de-Zuckmueckenlarve3.jpg", page: "https://commons.wikimedia.org/wiki/File:Mikrofoto.de-Zuckmueckenlarve3.jpg" },
+
+      stickle: { file: "Gasterosteus_aculeatus_-_50737277588.jpg", page: "https://commons.wikimedia.org/wiki/File:Gasterosteus_aculeatus_-_50737277588.jpg" },
+      roach:   { file: "RutilusRutilus.JPG", page: "https://commons.wikimedia.org/wiki/File:RutilusRutilus.JPG" },
+      dragon:  { file: "Libellenlarven.jpg", page: "https://commons.wikimedia.org/wiki/File:Libellenlarven.jpg" },
+      dytiscus:{ file: "Dytiscus_marginalis.jpg", page: "https://commons.wikimedia.org/wiki/File:Dytiscus_marginalis.jpg" },
+
+      pike:    { file: "Esox_Lucius.JPG", page: "https://commons.wikimedia.org/wiki/File:Esox_Lucius.JPG" },
+      corm:    { file: "Phalacrocorax_carbo_Vic.jpg", page: "https://commons.wikimedia.org/wiki/File:Phalacrocorax_carbo_Vic.jpg" },
+      heron:   { file: "Ardea_Cinerea.jpg", page: "https://commons.wikimedia.org/wiki/File:Ardea_Cinerea.jpg" },
+      otter:   { file: "Lutra_lutra_qtl3.jpg", page: "https://commons.wikimedia.org/wiki/File:Lutra_lutra_qtl3.jpg" },
+    };
+
+    function getImageInfo(cardId){
+      return IMAGE_MAP[cardId] || null;
+    }
+
+    function commonsFileUrl(fileName, width=520){
+      // encodeURIComponent ist wichtig wegen Leerzeichen, Klammern etc.
+      return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=${width}`;
+    }
+
+    // ======= State =======
+    const state = {
+marksOn: false,
+      // placement: map cardId -> zoneId (null means pool)
+      placement: new Map(),
+    };
+
+    // ======= DOM =======
+    const poolEl = document.getElementById("pool");
+    const scorePill = document.getElementById("scorePill");
+    const cardsPill = document.getElementById("cardsPill");
+
+    const zoneBodies = {
+      producer: document.getElementById("zone-producer"),
+      c1: document.getElementById("zone-c1"),
+      c2: document.getElementById("zone-c2"),
+      c3: document.getElementById("zone-c3"),
+      pool: poolEl,
+    };
+
+    const zoneCountEls = {
+      producer: document.getElementById("count-producer"),
+      c1: document.getElementById("count-c1"),
+      c2: document.getElementById("count-c2"),
+      c3: document.getElementById("count-c3"),
+    };
+const btnReset = document.getElementById("btnReset");
+const btnCheck = document.getElementById("btnCheck");
+// ======= Helpers =======
+    function shuffle(arr){
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function setStatus(text, kind=""){
+      scorePill.textContent = text;
+      scorePill.className = "pill" + (kind ? " " + kind : "");
+    }
+
+    function updateCounts(){
+      const counts = { producer:0, c1:0, c2:0, c3:0, pool:0 };
+      for(const o of ORGANISMS){
+        const z = state.placement.get(o.id) || "pool";
+        counts[z]++;
+      }
+      zoneCountEls.producer.textContent = counts.producer;
+      zoneCountEls.c1.textContent = counts.c1;
+      zoneCountEls.c2.textContent = counts.c2;
+      zoneCountEls.c3.textContent = counts.c3;
+      cardsPill.textContent = `Karten: ${ORGANISMS.length} (im Pool: ${counts.pool})`;
+    }
+
+    function clearMarks(){
+      state.marksOn = false;
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('correct','wrong'));
+      setStatus("Punkte: –");
+    }
+
+    // ======= Hover-Bildvorschau (Mouse) =======
+    const hoverTipEl = document.getElementById('hoverTip');
+    const hoverImgEl = document.getElementById('hoverImg');
+    const hoverTitleEl = document.getElementById('hoverTitle');
+    const hoverSourceEl = document.getElementById('hoverSource');
+
+    let hoverPinned = false;
+
+    function positionHover(x, y){
+      if(!hoverTipEl) return;
+      const pad = 14;
+      // Sichtbar machen, damit getBoundingClientRect sinnvolle Werte liefert
+      const rect = hoverTipEl.getBoundingClientRect();
+      const w = rect.width || 320;
+      const h = rect.height || 240;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      let left = x + pad;
+      let top = y + pad;
+      if(left + w + pad > vw) left = x - w - pad;
+      if(top + h + pad > vh) top = y - h - pad;
+
+      left = Math.max(pad, Math.min(vw - w - pad, left));
+      top = Math.max(pad, Math.min(vh - h - pad, top));
+
+      hoverTipEl.style.left = left + 'px';
+      hoverTipEl.style.top = top + 'px';
+    }
+
+    function showHover(cardId, x, y, pin=false){
+      if(!hoverTipEl || !hoverImgEl || !hoverTitleEl || !hoverSourceEl) return;
+      const info = getImageInfo(cardId);
+      if(!info) return;
+
+      const org = ORGANISMS.find(o => o.id === cardId);
+      hoverPinned = pin;
+
+      hoverTitleEl.textContent = org ? org.name : '';
+      hoverImgEl.alt = org ? org.name : 'Bild';
+      hoverImgEl.src = commonsFileUrl(info.file, 520);
+      hoverSourceEl.href = info.page;
+
+      hoverTipEl.classList.add('show');
+      hoverTipEl.setAttribute('aria-hidden','false');
+      positionHover(x, y);
+    }
+
+    function hideHover(force=false){
+      if(!hoverTipEl) return;
+      if(hoverPinned && !force) return;
+      hoverPinned = false;
+      hoverTipEl.classList.remove('show');
+      hoverTipEl.setAttribute('aria-hidden','true');
+      hoverTipEl.style.left = '-9999px';
+      hoverTipEl.style.top = '-9999px';
+    }
+
+    // ESC schließt Vorschau
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') hideHover(true);
+    });
+
+    // Wenn „angeheftet“ (Touch), dann Klick außerhalb schließt
+    document.addEventListener('pointerdown', (e) => {
+      if(!hoverPinned) return;
+      const t = e.target;
+      if(t.closest && (t.closest('#hoverTip') || t.closest('.card'))) return;
+      hideHover(true);
+    });
+
+    // Beim Scrollen Vorschau schließen (verhindert „Schweben“ an falscher Stelle)
+    window.addEventListener('scroll', () => {
+      if(!hoverPinned) hideHover(true);
+    }, { passive: true });
+
+    // ======= Touch/Tablet Drag & Drop Fallback (iPadOS/Safari) =======
+    // iOS/iPadOS Safari unterstützt HTML5 Drag&Drop im Browser nicht zuverlässig.
+    // Also: Pointer-basiertes „Draggen“ als Fallback.
+    let activeDrag = null; // {cardId, sourceEl, pointerId, startX, startY, offsetX, offsetY, started}
+    let ghostEl = null;
+    let lastOverEl = null;
+
+    function closestDropTarget(el){
+      if(!el) return null;
+      // Pool
+      if(el.id === 'pool') return { zoneId:'pool', el };
+      const pool = el.closest && el.closest('#pool');
+      if(pool) return { zoneId:'pool', el: pool };
+      // Zone
+      const zone = el.closest && el.closest('.zone');
+      if(zone) return { zoneId: zone.dataset.zone, el: zone };
+      return null;
+    }
+
+    function setOver(target){
+      if(lastOverEl) lastOverEl.classList.remove('dragOver');
+      lastOverEl = target ? target.el : null;
+      if(lastOverEl) lastOverEl.classList.add('dragOver');
+    }
+
+    function startGhost(sourceEl){
+      const rect = sourceEl.getBoundingClientRect();
+      ghostEl = sourceEl.cloneNode(true);
+      ghostEl.classList.add('drag-ghost');
+      ghostEl.style.width = rect.width + 'px';
+      document.body.appendChild(ghostEl);
+    }
+
+    function positionGhost(clientX, clientY){
+      if(!ghostEl || !activeDrag) return;
+      const x = clientX - activeDrag.offsetX;
+      const y = clientY - activeDrag.offsetY;
+      ghostEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+
+    function cleanupDrag(){
+      setOver(null);
+      if(activeDrag?.sourceEl) activeDrag.sourceEl.classList.remove('dragging');
+      if(ghostEl){ ghostEl.remove(); ghostEl = null; }
+      activeDrag = null;
+    }
+
+    // ======= Rendering =======
+    function createCardEl(org){
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.draggable = true;
+      el.id = `card-${org.id}`;
+      el.setAttribute('role','listitem');
+      el.dataset.cardId = org.id;
+
+      const badge = document.createElement('div');
+      badge.className = 'badge';
+      badge.textContent = ZONE_LABEL[org.correct];
+
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = org.name;
+
+      const mini = document.createElement('div');
+      mini.className = 'mini';
+      mini.textContent = 'Drag & Drop';
+
+      el.appendChild(badge);
+      el.appendChild(name);
+      el.appendChild(mini);
+
+      el.addEventListener('dragstart', (e) => {
+        // Desktop/PC-Browser
+        if(e.dataTransfer){
+          e.dataTransfer.setData('text/plain', org.id);
+          e.dataTransfer.effectAllowed = 'move';
+        }
+      });
+
+      // Touch/iPad: Pointer-basierter Drag-Fallback
+      el.addEventListener('pointerdown', (ev) => {
+        if(ev.pointerType !== 'touch' && ev.pointerType !== 'pen') return;
+        // Hover-Vorschau (falls mit Maus vorher offen) schließen
+        hideHover(true);
+        // Keine sofortige Blockade: erst wenn wirklich gezogen wird (sonst kann man nicht scrollen).
+        const rect = el.getBoundingClientRect();
+        activeDrag = {
+          cardId: org.id,
+          sourceEl: el,
+          pointerId: ev.pointerId,
+          startX: ev.clientX,
+          startY: ev.clientY,
+          offsetX: ev.clientX - rect.left,
+          offsetY: ev.clientY - rect.top,
+          started: false,
+        };
+
+        const onMove = (e) => {
+          if(!activeDrag || e.pointerId !== activeDrag.pointerId) return;
+
+          const dx = Math.abs(e.clientX - activeDrag.startX);
+          const dy = Math.abs(e.clientY - activeDrag.startY);
+
+          // Drag erst nach kleiner Bewegung starten, damit Scrollen weiterhin klappt.
+          if(!activeDrag.started){
+            if(dx + dy < 10) return;
+            activeDrag.started = true;
+            activeDrag.sourceEl.classList.add('dragging');
+            startGhost(activeDrag.sourceEl);
+          }
+
+          // Ab hier ist es ein Drag: Scrollen/Textauswahl unterbinden.
+          e.preventDefault();
+          positionGhost(e.clientX, e.clientY);
+
+          const under = document.elementFromPoint(e.clientX, e.clientY);
+          setOver(closestDropTarget(under));
+        };
+
+        const onUp = (e) => {
+          if(!activeDrag || e.pointerId !== activeDrag.pointerId) return;
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+          window.removeEventListener('pointercancel', onCancel);
+
+          const didDrag = activeDrag.started;
+          const cardId = activeDrag.cardId;
+
+          let target = null;
+          if(didDrag){
+            const under = document.elementFromPoint(e.clientX, e.clientY);
+            target = closestDropTarget(under);
+          }
+
+          cleanupDrag();
+          if(didDrag && target) moveCard(cardId, target.zoneId);
+        };
+
+        const onCancel = (e) => {
+          if(!activeDrag || e.pointerId !== activeDrag.pointerId) return;
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+          window.removeEventListener('pointercancel', onCancel);
+          cleanupDrag();
+        };
+
+        window.addEventListener('pointermove', onMove, { passive: false });
+        window.addEventListener('pointerup', onUp, { passive: false });
+        window.addEventListener('pointercancel', onCancel, { passive: false });
+      });
+
+      // Tastatur: Enter/Space = in die nächste Zone schieben
+      el.tabIndex = 0;
+      el.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          const order = ['pool','producer','c1','c2','c3'];
+          const current = state.placement.get(org.id) || 'pool';
+          const next = order[(order.indexOf(current)+1) % order.length];
+          moveCard(org.id, next);
+        }
+      });
+
+      // Mouse-Hover: Bildvorschau anzeigen
+      if(getImageInfo(org.id)){
+        el.addEventListener('mouseenter', (e) => {
+          // Während Touch-Drag aktiv ist, nichts anzeigen
+          if(activeDrag?.started) return;
+          showHover(org.id, e.clientX, e.clientY, false);
+        });
+        el.addEventListener('mousemove', (e) => {
+          if(!hoverTipEl || !hoverTipEl.classList.contains('show')) return;
+          if(hoverPinned) return;
+          positionHover(e.clientX, e.clientY);
+        });
+        el.addEventListener('mouseleave', () => {
+          if(!hoverPinned) hideHover(true);
+        });
+
+        // Touch: Tippen = Vorschau „anheften“/lösen
+        el.addEventListener('click', (e) => {
+          // Auf Desktop nur Hover; Click ignorieren
+          if(e.pointerType === 'mouse') return;
+          if(hoverPinned){
+            hideHover(true);
+          } else {
+            showHover(org.id, (e.clientX || 20), (e.clientY || 20), true);
+          }
+        });
+      }
+
+      return el;
+    }
+
+    function renderAll(){
+      poolEl.innerHTML = '';
+      Object.values(zoneBodies).forEach((el) => { if(el !== poolEl) el.innerHTML = ''; });
+
+      for(const org of ORGANISMS){
+        const z = state.placement.get(org.id) || 'pool';
+        const card = createCardEl(org);
+if(state.marksOn){
+          const placed = state.placement.get(org.id) || 'pool';
+          if(placed === org.correct) card.classList.add('correct');
+          else if(placed !== 'pool') card.classList.add('wrong');
+        }
+
+        zoneBodies[z].appendChild(card);
+      }
+
+      updateCounts();
+    }
+
+    function moveCard(cardId, zoneId){
+      if(zoneId === 'pool') state.placement.delete(cardId);
+      else state.placement.set(cardId, zoneId);
+      clearMarks();
+      renderAll();
+    }
+
+    // ======= Drop targets =======
+    function wireDropTarget(targetEl, zoneId){
+      targetEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        targetEl.classList.add('dragOver');
+        e.dataTransfer.dropEffect = 'move';
+      });
+      targetEl.addEventListener('dragleave', () => targetEl.classList.remove('dragOver'));
+      targetEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        targetEl.classList.remove('dragOver');
+        const cardId = e.dataTransfer.getData('text/plain');
+        if(!cardId) return;
+        moveCard(cardId, zoneId);
+      });
+    }
+
+    document.querySelectorAll('.zone').forEach(zone => wireDropTarget(zone, zone.dataset.zone));
+    wireDropTarget(poolEl, 'pool');
+
+    // ======= Buttons =======
+btnReset.addEventListener('click', () => {
+      state.placement.clear();
+      clearMarks();
+      renderAll();
+    });
+btnCheck.addEventListener('click', () => {
+      let placed = 0;
+      let correct = 0;
+      state.marksOn = true;
+
+      for(const org of ORGANISMS){
+        const z = state.placement.get(org.id) || 'pool';
+        if(z !== 'pool'){
+          placed++;
+          if(z === org.correct) correct++;
+        }
+      }
+
+      const pct = placed ? Math.round((correct / placed) * 100) : 0;
+      let kind = 'warn';
+      if(placed === 0) kind = '';
+      else if(pct >= 85) kind = 'good';
+      else if(pct < 60) kind = 'bad';
+
+      setStatus(`Punkte: ${correct}/${placed} korrekt (${pct}%)`, kind);
+      renderAll();
+    });
+// ======= Init =======
+    (function init(){
+      state.placement.clear();
+      clearMarks();
+      updateCounts();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
