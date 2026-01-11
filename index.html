@@ -901,6 +901,8 @@ if(state.marksOn){
 
     // ======= Buttons =======
 btnReset.addEventListener('click', () => {
+      // Karten bei jedem Neustart durchmischen
+      shuffle(ORGANISMS);
       state.placement.clear();
       clearMarks();
       renderAll();
@@ -929,6 +931,8 @@ btnCheck.addEventListener('click', () => {
     });
 // ======= Init =======
     (function init(){
+      // Start: Karten durchmischen (damit Kategorien nicht geblockt erscheinen)
+      shuffle(ORGANISMS);
       state.placement.clear();
       clearMarks();
       updateCounts();
