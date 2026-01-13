@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ökosystem See – Trophieebenen (Drag & Drop)</title>
+  <title>Ökosystem See – Trophieebenen (Zuordnung)</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -47,8 +47,20 @@
     .subtitle{
       margin:0;
       color:var(--muted);
+      font-size:15px;
+      line-height:1.55;
+    }
+
+    .subtitle.task{
+      font-size:16px;
+      color:#dbe7ff;
+    }
+
+    .taskSmall{
+      display:block;
+      margin-top:6px;
       font-size:13px;
-      line-height:1.45;
+      color:var(--muted);
     }
 
     .wrap{
@@ -104,6 +116,37 @@
       margin-top:2px;
     }
 
+    .topControls .pill{
+      padding:6px 10px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .infoBtn{
+      margin-left:6px;
+      width:20px;
+      height:20px;
+      border-radius:999px;
+      padding:0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      line-height:1;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+      color:rgba(231,238,252,.9);
+      cursor:pointer;
+      transform:translateY(-1px);
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-touch-callout:none;
+      touch-action: manipulation;
+    }
+
+    .infoBtn:hover{background:rgba(255,255,255,.10)}
+    .infoBtn:active{transform:translateY(0)}
+
     button{
       background:rgba(255,255,255,.06);
       color:var(--text);
@@ -127,11 +170,6 @@
       border-color:rgba(99,179,255,.35);
     }
     button.primary:hover{background:rgba(99,179,255,.24)}
-
-    button.warn{
-      background:rgba(251,191,36,.14);
-      border-color:rgba(251,191,36,.32);
-    }
 
     button.bad{
       background:rgba(251,113,133,.14);
@@ -166,37 +204,17 @@
     .card:hover{transform:translateY(-1px); border-color:rgba(99,179,255,.35)}
     .card:active{cursor:grabbing; transform:translateY(0)}
 
-    /* Touch/iPad Drag-Preview */
-    .card.dragging{opacity:.25}
-    .drag-ghost{
-      position:fixed;
-      left:0;
-      top:0;
-      z-index:9999;
-      pointer-events:none;
-      opacity:.92;
-      transform:translate3d(-9999px,-9999px,0);
-    }
-    .drag-ghost .mini{display:none;}
-    .drag-ghost{filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));}
-
     .card .name{font-size:13px; font-weight:650; letter-spacing:.15px; padding-right:64px; line-height:1.25;}
     .card .mini{font-size:11px; color:var(--muted); margin-top:2px;}
 
-    .badge{
-      position:absolute;
-      top:8px;
-      right:8px;
-      font-size:10px;
-      padding:4px 7px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.18);
-      color:var(--muted);
-      display:none;
-    }
-.card.correct{border-color: rgba(52,211,153,.55); background:rgba(52,211,153,.10)}
+    .card.correct{border-color: rgba(52,211,153,.55); background:rgba(52,211,153,.10)}
     .card.wrong{border-color: rgba(251,113,133,.55); background:rgba(251,113,133,.10)}
+
+    .card.tapSelected{
+      border-color: rgba(99,179,255,.72);
+      background: rgba(99,179,255,.12);
+      box-shadow: 0 12px 26px rgba(0,0,0,.35);
+    }
 
     /* drop zones */
     .zones{
@@ -251,20 +269,6 @@
       min-height:90px;
     }
 
-    /* status bar */
-    .status{
-      padding:12px 14px;
-      border-top:1px solid var(--border);
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      background:rgba(0,0,0,.14);
-    }
-
-    .status .left{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-
     .pill{
       font-family:var(--mono);
       font-size:12px;
@@ -310,7 +314,7 @@
       transition:opacity .08s ease;
       pointer-events:none;
     }
-    .hoverTip.show{opacity:1; pointer-events:auto;}
+    .hoverTip.show{opacity:1;}
     .hoverTip .htBox{
       background:rgba(6,11,22,.92);
       border:1px solid rgba(255,255,255,.14);
@@ -319,26 +323,20 @@
       overflow:hidden;
       backdrop-filter: blur(6px);
     }
-    .hoverTip img{
-      width:100%;
-      height:auto;
-      display:block;
-      background:rgba(255,255,255,.04);
-    }
+    .hoverTip img{width:100%; height:auto; display:block; background:rgba(255,255,255,.04);}
     .hoverTip .htBody{padding:10px 12px;}
     .hoverTip .htTitle{font-size:12px; font-weight:750; letter-spacing:.15px; margin:0 0 4px;}
     .hoverTip .htMeta{font-size:11px; color:rgba(255,255,255,.65); line-height:1.35;}
     .hoverTip .htMeta a{color:rgba(99,179,255,.92); text-decoration:none;}
     .hoverTip .htMeta a:hover{text-decoration:underline;}
-
   </style>
 </head>
 <body>
   <header>
     <h1>Ökosystem See: Trophieebenen zuordnen</h1>
-    <p class="subtitle">
-      Drag-and-Drop: Ordne die Organismen den Trophieebenen zu (Produzenten, Konsumenten 1.–3. Ordnung). Klicke anschließend auf <b>Prüfen</b>.
-      Hinweis: Die Einordnung ist für den Unterricht vereinfacht.
+    <p class="subtitle task">
+      Ordne die Organismen den Trophieebenen zu (Produzenten, Konsumenten 1.–3. Ordnung) und klicke anschließend auf <b>Prüfen</b>.
+      <span class="taskSmall">Tablet: Karte antippen und danach das Ziel-Feld antippen.</span>
     </p>
   </header>
 
@@ -348,23 +346,17 @@
       <div class="panelHeader">
         <div>
           <h2>Karten</h2>
-          <p class="hint">Ziehe Karten in die passende Box. Zurückziehen geht immer.</p>
+          <p class="hint">PC: Ziehen und ablegen. Tablet: Karte antippen, dann Feld antippen.</p>
         </div>
-        <div class="controls">
-<button id="btnReset" class="bad" title="Alles zurück in den Pool">Zurücksetzen</button>
-</div>
+        <div class="controls topControls">
+          <div id="scorePill" class="pill">Punkte: –</div>
+          <div id="cardsPill" class="pill">Karten: –</div>
+          <button id="btnCheck" class="primary" title="Überprüft Zuordnung">Prüfen</button>
+          <button id="btnReset" class="bad" title="Alles zurück in den Pool">Zurücksetzen</button>
+        </div>
       </div>
       <div class="content">
         <div id="pool" class="pool" role="list" aria-label="Kartenpool"></div>
-      </div>
-      <div class="status">
-        <div class="left">
-          <div id="scorePill" class="pill">Punkte: –</div>
-          <div id="cardsPill" class="pill">Karten: –</div>
-        </div>
-        <div class="controls">
-          <button id="btnCheck" class="primary" title="Überprüft Zuordnung">Prüfen</button>
-</div>
       </div>
     </section>
 
@@ -373,7 +365,7 @@
       <div class="panelHeader">
         <div>
           <h2>Zuordnung: Trophieebenen</h2>
-          <p class="hint">Drop-Zonen: Produzenten und Konsumenten (1.–3. Ordnung).</p>
+          <p class="hint">Tippe auf das Info-Symbol (i), um eine kurze Definition zu sehen.</p>
         </div>
       </div>
 
@@ -382,7 +374,7 @@
           <div class="zone" data-zone="producer" aria-label="Produzenten" tabindex="0">
             <div class="zoneHead">
               <div>
-                <div class="zoneTitle">Produzenten</div>
+                <div class="zoneTitle">Produzenten <button type="button" class="infoBtn" data-help="producer" aria-label="Hilfe: Produzenten">i</button></div>
                 <div class="zoneSub">Autotroph: Pflanzen, Algen</div>
               </div>
               <div class="pill" id="count-producer">0</div>
@@ -393,7 +385,7 @@
           <div class="zone" data-zone="c1" aria-label="Konsumenten 1. Ordnung" tabindex="0">
             <div class="zoneHead">
               <div>
-                <div class="zoneTitle">Konsumenten 1. Ordnung</div>
+                <div class="zoneTitle">Konsumenten 1. Ordnung <button type="button" class="infoBtn" data-help="c1" aria-label="Hilfe: Konsumenten 1. Ordnung">i</button></div>
                 <div class="zoneSub">Herbivor/Detritivor: fressen Produzenten</div>
               </div>
               <div class="pill" id="count-c1">0</div>
@@ -404,7 +396,7 @@
           <div class="zone" data-zone="c2" aria-label="Konsumenten 2. Ordnung" tabindex="0">
             <div class="zoneHead">
               <div>
-                <div class="zoneTitle">Konsumenten 2. Ordnung</div>
+                <div class="zoneTitle">Konsumenten 2. Ordnung <button type="button" class="infoBtn" data-help="c2" aria-label="Hilfe: Konsumenten 2. Ordnung">i</button></div>
                 <div class="zoneSub">Karnivor/Omnivor: fressen K1</div>
               </div>
               <div class="pill" id="count-c2">0</div>
@@ -415,7 +407,7 @@
           <div class="zone" data-zone="c3" aria-label="Konsumenten 3. Ordnung" tabindex="0">
             <div class="zoneHead">
               <div>
-                <div class="zoneTitle">Konsumenten 3. Ordnung</div>
+                <div class="zoneTitle">Konsumenten 3. Ordnung <button type="button" class="infoBtn" data-help="c3" aria-label="Hilfe: Konsumenten 3. Ordnung">i</button></div>
                 <div class="zoneSub">Top-Prädatoren: fressen K2</div>
               </div>
               <div class="pill" id="count-c3">0</div>
@@ -479,53 +471,45 @@
       { id: "otter", name: "Fischotter", correct: "c3" },
     ];
 
-    const ZONE_LABEL = {
-      producer: "Produzent",
-      c1: "K1",
-      c2: "K2",
-      c3: "K3"
-    };
-
-    // ======= Bildquellen (frei nutzbar über Wikimedia Commons; Lizenzdetails auf der Dateiseite) =======
-    // Direktlink wird über Special:FilePath gebaut. Breite wird (wenn unterstützt) über ?width=... angefragt.
+    // ======= Bildquellen (Wikimedia Commons; Lizenzdetails auf der Dateiseite) =======
     const IMAGE_MAP = {
-      phyto:   { file: "Phytoplankton.jpg", page: "https://commons.wikimedia.org/wiki/File:Phytoplankton.jpg" },
+      phyto:    { file: "Phytoplankton.jpg", page: "https://commons.wikimedia.org/wiki/File:Phytoplankton.jpg" },
       waterpest:{ file: "Elodea_canadensis.jpg", page: "https://commons.wikimedia.org/wiki/File:Elodea_canadensis.jpg" },
-      seerose: { file: "Nymphaea_alba-Flower.jpg", page: "https://commons.wikimedia.org/wiki/File:Nymphaea_alba-Flower.jpg" },
-      schilf:  { file: "Phragmites_Australis_(240719361).jpeg", page: "https://commons.wikimedia.org/wiki/File:Phragmites_Australis_(240719361).jpeg" },
-
-      daphnia: { file: "Daphnia_magna_-_NTNU.jpg", page: "https://commons.wikimedia.org/wiki/File:Daphnia_magna_-_NTNU.jpg" },
-      zoopl:   { file: "Brachionuscalyciflorus.jpg", page: "https://commons.wikimedia.org/wiki/File:Brachionuscalyciflorus.jpg" },
-      snail:   { file: "Planorbarius_corneus_001.JPG", page: "https://commons.wikimedia.org/wiki/File:Planorbarius_corneus_001.JPG" },
-      mussel:  { file: "Anodonta_anatina_01.jpg", page: "https://commons.wikimedia.org/wiki/File:Anodonta_anatina_01.jpg" },
-      tadpole: { file: "Kaulquappen_Tadpole_1.JPG", page: "https://commons.wikimedia.org/wiki/File:Kaulquappen_Tadpole_1.JPG" },
-      midge:   { file: "Mikrofoto.de-Zuckmueckenlarve3.jpg", page: "https://commons.wikimedia.org/wiki/File:Mikrofoto.de-Zuckmueckenlarve3.jpg" },
-
-      stickle: { file: "Gasterosteus_aculeatus_-_50737277588.jpg", page: "https://commons.wikimedia.org/wiki/File:Gasterosteus_aculeatus_-_50737277588.jpg" },
-      roach:   { file: "RutilusRutilus.JPG", page: "https://commons.wikimedia.org/wiki/File:RutilusRutilus.JPG" },
-      dragon:  { file: "Libellenlarven.jpg", page: "https://commons.wikimedia.org/wiki/File:Libellenlarven.jpg" },
-      dytiscus:{ file: "Dytiscus_marginalis.jpg", page: "https://commons.wikimedia.org/wiki/File:Dytiscus_marginalis.jpg" },
-
-      pike:    { file: "Esox_Lucius.JPG", page: "https://commons.wikimedia.org/wiki/File:Esox_Lucius.JPG" },
-      corm:    { file: "Phalacrocorax_carbo_Vic.jpg", page: "https://commons.wikimedia.org/wiki/File:Phalacrocorax_carbo_Vic.jpg" },
-      heron:   { file: "Ardea_Cinerea.jpg", page: "https://commons.wikimedia.org/wiki/File:Ardea_Cinerea.jpg" },
-      otter:   { file: "Lutra_lutra_qtl3.jpg", page: "https://commons.wikimedia.org/wiki/File:Lutra_lutra_qtl3.jpg" },
+      seerose:  { file: "Nymphaea_alba-Flower.jpg", page: "https://commons.wikimedia.org/wiki/File:Nymphaea_alba-Flower.jpg" },
+      schilf:   { file: "Phragmites_Australis_(240719361).jpeg", page: "https://commons.wikimedia.org/wiki/File:Phragmites_Australis_(240719361).jpeg" },
+      daphnia:  { file: "Daphnia_magna_-_NTNU.jpg", page: "https://commons.wikimedia.org/wiki/File:Daphnia_magna_-_NTNU.jpg" },
+      zoopl:    { file: "Brachionuscalyciflorus.jpg", page: "https://commons.wikimedia.org/wiki/File:Brachionuscalyciflorus.jpg" },
+      snail:    { file: "Planorbarius_corneus_001.JPG", page: "https://commons.wikimedia.org/wiki/File:Planorbarius_corneus_001.JPG" },
+      mussel:   { file: "Anodonta_anatina_01.jpg", page: "https://commons.wikimedia.org/wiki/File:Anodonta_anatina_01.jpg" },
+      tadpole:  { file: "Kaulquappen_Tadpole_1.JPG", page: "https://commons.wikimedia.org/wiki/File:Kaulquappen_Tadpole_1.JPG" },
+      midge:    { file: "Mikrofoto.de-Zuckmueckenlarve3.jpg", page: "https://commons.wikimedia.org/wiki/File:Mikrofoto.de-Zuckmueckenlarve3.jpg" },
+      stickle:  { file: "Gasterosteus_aculeatus_-_50737277588.jpg", page: "https://commons.wikimedia.org/wiki/File:Gasterosteus_aculeatus_-_50737277588.jpg" },
+      roach:    { file: "RutilusRutilus.JPG", page: "https://commons.wikimedia.org/wiki/File:RutilusRutilus.JPG" },
+      dragon:   { file: "Libellenlarven.jpg", page: "https://commons.wikimedia.org/wiki/File:Libellenlarven.jpg" },
+      dytiscus: { file: "Dytiscus_marginalis.jpg", page: "https://commons.wikimedia.org/wiki/File:Dytiscus_marginalis.jpg" },
+      pike:     { file: "Esox_Lucius.JPG", page: "https://commons.wikimedia.org/wiki/File:Esox_Lucius.JPG" },
+      corm:     { file: "Phalacrocorax_carbo_Vic.jpg", page: "https://commons.wikimedia.org/wiki/File:Phalacrocorax_carbo_Vic.jpg" },
+      heron:    { file: "Ardea_Cinerea.jpg", page: "https://commons.wikimedia.org/wiki/File:Ardea_Cinerea.jpg" },
+      otter:    { file: "Lutra_lutra_qtl3.jpg", page: "https://commons.wikimedia.org/wiki/File:Lutra_lutra_qtl3.jpg" },
     };
+
+    function commonsFileUrl(fileName, width=520){
+      return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=${width}`;
+    }
 
     function getImageInfo(cardId){
       return IMAGE_MAP[cardId] || null;
     }
 
-    function commonsFileUrl(fileName, width=520){
-      // encodeURIComponent ist wichtig wegen Leerzeichen, Klammern etc.
-      return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=${width}`;
-    }
+    // ======= Tablet-Modus (Tap-to-Move) =======
+    // iPadOS/Safari: HTML5 Drag&Drop ist unzuverlässig. Daher: Karte antippen -> Feld antippen.
+    const TAP_MODE = !!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
 
     // ======= State =======
     const state = {
-marksOn: false,
-      // placement: map cardId -> zoneId (null means pool)
+      marksOn: false,
       placement: new Map(),
+      selectedCardId: null, // nur im Tablet-Modus
     };
 
     // ======= DOM =======
@@ -547,9 +531,17 @@ marksOn: false,
       c2: document.getElementById("count-c2"),
       c3: document.getElementById("count-c3"),
     };
-const btnReset = document.getElementById("btnReset");
-const btnCheck = document.getElementById("btnCheck");
-// ======= Helpers =======
+
+    const btnReset = document.getElementById("btnReset");
+    const btnCheck = document.getElementById("btnCheck");
+
+    // Hover-Vorschau DOM
+    const hoverTipEl = document.getElementById('hoverTip');
+    const hoverImgEl = document.getElementById('hoverImg');
+    const hoverTitleEl = document.getElementById('hoverTitle');
+    const hoverSourceEl = document.getElementById('hoverSource');
+
+    // ======= Helpers =======
     function shuffle(arr){
       for(let i = arr.length - 1; i > 0; i--){
         const j = Math.floor(Math.random() * (i + 1));
@@ -576,24 +568,42 @@ const btnCheck = document.getElementById("btnCheck");
       cardsPill.textContent = `Karten: ${ORGANISMS.length} (im Pool: ${counts.pool})`;
     }
 
+    function updateScore(){
+      let placed = 0;
+      let correct = 0;
+
+      for(const org of ORGANISMS){
+        const z = state.placement.get(org.id) || 'pool';
+        if(z !== 'pool'){
+          placed++;
+          if(z === org.correct) correct++;
+        }
+      }
+
+      const pct = placed ? Math.round((correct / placed) * 100) : 0;
+      let kind = 'warn';
+      if(placed === 0) kind = '';
+      else if(pct >= 85) kind = 'good';
+      else if(pct < 60) kind = 'bad';
+
+      setStatus(`Punkte: ${correct}/${placed} korrekt (${pct}%)`, kind);
+    }
+
     function clearMarks(){
       state.marksOn = false;
       document.querySelectorAll('.card').forEach(c => c.classList.remove('correct','wrong'));
-      setStatus("Punkte: –");
+      setStatus('Punkte: –');
+    }
+
+    function selectCard(cardId){
+      if(!TAP_MODE) return;
+      state.selectedCardId = (state.selectedCardId === cardId) ? null : cardId;
+      renderAll();
     }
 
     // ======= Hover-Bildvorschau (Mouse) =======
-    const hoverTipEl = document.getElementById('hoverTip');
-    const hoverImgEl = document.getElementById('hoverImg');
-    const hoverTitleEl = document.getElementById('hoverTitle');
-    const hoverSourceEl = document.getElementById('hoverSource');
-
-    let hoverPinned = false;
-
     function positionHover(x, y){
-      if(!hoverTipEl) return;
       const pad = 14;
-      // Sichtbar machen, damit getBoundingClientRect sinnvolle Werte liefert
       const rect = hoverTipEl.getBoundingClientRect();
       const w = rect.width || 320;
       const h = rect.height || 240;
@@ -612,111 +622,43 @@ const btnCheck = document.getElementById("btnCheck");
       hoverTipEl.style.top = top + 'px';
     }
 
-    function showHover(cardId, x, y, pin=false){
-      if(!hoverTipEl || !hoverImgEl || !hoverTitleEl || !hoverSourceEl) return;
+    function showHover(cardId, x, y){
       const info = getImageInfo(cardId);
       if(!info) return;
-
       const org = ORGANISMS.find(o => o.id === cardId);
-      hoverPinned = pin;
 
       hoverTitleEl.textContent = org ? org.name : '';
       hoverImgEl.alt = org ? org.name : 'Bild';
-      hoverImgEl.src = commonsFileUrl(info.file, 520);
       hoverSourceEl.href = info.page;
+
+      hoverImgEl.onerror = () => {
+        hoverImgEl.onerror = null;
+        hoverImgEl.src = 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg';
+      };
+      hoverImgEl.src = commonsFileUrl(info.file, 520);
 
       hoverTipEl.classList.add('show');
       hoverTipEl.setAttribute('aria-hidden','false');
       positionHover(x, y);
     }
 
-    function hideHover(force=false){
-      if(!hoverTipEl) return;
-      if(hoverPinned && !force) return;
-      hoverPinned = false;
+    function hideHover(){
       hoverTipEl.classList.remove('show');
       hoverTipEl.setAttribute('aria-hidden','true');
       hoverTipEl.style.left = '-9999px';
       hoverTipEl.style.top = '-9999px';
     }
 
-    // ESC schließt Vorschau
-    document.addEventListener('keydown', (e) => {
-      if(e.key === 'Escape') hideHover(true);
-    });
-
-    // Wenn „angeheftet“ (Touch), dann Klick außerhalb schließt
-    document.addEventListener('pointerdown', (e) => {
-      if(!hoverPinned) return;
-      const t = e.target;
-      if(t.closest && (t.closest('#hoverTip') || t.closest('.card'))) return;
-      hideHover(true);
-    });
-
-    // Beim Scrollen Vorschau schließen (verhindert „Schweben“ an falscher Stelle)
-    window.addEventListener('scroll', () => {
-      if(!hoverPinned) hideHover(true);
-    }, { passive: true });
-
-    // ======= Touch/Tablet Drag & Drop Fallback (iPadOS/Safari) =======
-    // iOS/iPadOS Safari unterstützt HTML5 Drag&Drop im Browser nicht zuverlässig.
-    // Also: Pointer-basiertes „Draggen“ als Fallback.
-    let activeDrag = null; // {cardId, sourceEl, pointerId, startX, startY, offsetX, offsetY, started}
-    let ghostEl = null;
-    let lastOverEl = null;
-
-    function closestDropTarget(el){
-      if(!el) return null;
-      // Pool
-      if(el.id === 'pool') return { zoneId:'pool', el };
-      const pool = el.closest && el.closest('#pool');
-      if(pool) return { zoneId:'pool', el: pool };
-      // Zone
-      const zone = el.closest && el.closest('.zone');
-      if(zone) return { zoneId: zone.dataset.zone, el: zone };
-      return null;
-    }
-
-    function setOver(target){
-      if(lastOverEl) lastOverEl.classList.remove('dragOver');
-      lastOverEl = target ? target.el : null;
-      if(lastOverEl) lastOverEl.classList.add('dragOver');
-    }
-
-    function startGhost(sourceEl){
-      const rect = sourceEl.getBoundingClientRect();
-      ghostEl = sourceEl.cloneNode(true);
-      ghostEl.classList.add('drag-ghost');
-      ghostEl.style.width = rect.width + 'px';
-      document.body.appendChild(ghostEl);
-    }
-
-    function positionGhost(clientX, clientY){
-      if(!ghostEl || !activeDrag) return;
-      const x = clientX - activeDrag.offsetX;
-      const y = clientY - activeDrag.offsetY;
-      ghostEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    }
-
-    function cleanupDrag(){
-      setOver(null);
-      if(activeDrag?.sourceEl) activeDrag.sourceEl.classList.remove('dragging');
-      if(ghostEl){ ghostEl.remove(); ghostEl = null; }
-      activeDrag = null;
-    }
-
     // ======= Rendering =======
     function createCardEl(org){
       const el = document.createElement('div');
       el.className = 'card';
-      el.draggable = true;
       el.id = `card-${org.id}`;
       el.setAttribute('role','listitem');
       el.dataset.cardId = org.id;
 
-      const badge = document.createElement('div');
-      badge.className = 'badge';
-      badge.textContent = ZONE_LABEL[org.correct];
+      // Desktop: Drag & Drop aktivieren
+      el.draggable = !TAP_MODE;
 
       const name = document.createElement('div');
       name.className = 'name';
@@ -724,91 +666,28 @@ const btnCheck = document.getElementById("btnCheck");
 
       const mini = document.createElement('div');
       mini.className = 'mini';
-      mini.textContent = 'Drag & Drop';
+      mini.textContent = TAP_MODE ? 'Antippen zum Auswählen' : 'Ziehen und ablegen';
 
-      el.appendChild(badge);
       el.appendChild(name);
       el.appendChild(mini);
 
+      if(state.selectedCardId === org.id) el.classList.add('tapSelected');
+
+      // Desktop Dragstart
       el.addEventListener('dragstart', (e) => {
-        // Desktop/PC-Browser
-        if(e.dataTransfer){
-          e.dataTransfer.setData('text/plain', org.id);
-          e.dataTransfer.effectAllowed = 'move';
-        }
+        if(!e.dataTransfer) return;
+        e.dataTransfer.setData('text/plain', org.id);
+        e.dataTransfer.effectAllowed = 'move';
       });
 
-      // Touch/iPad: Pointer-basierter Drag-Fallback
-      el.addEventListener('pointerdown', (ev) => {
-        if(ev.pointerType !== 'touch' && ev.pointerType !== 'pen') return;
-        // Hover-Vorschau (falls mit Maus vorher offen) schließen
-        hideHover(true);
-        // Keine sofortige Blockade: erst wenn wirklich gezogen wird (sonst kann man nicht scrollen).
-        const rect = el.getBoundingClientRect();
-        activeDrag = {
-          cardId: org.id,
-          sourceEl: el,
-          pointerId: ev.pointerId,
-          startX: ev.clientX,
-          startY: ev.clientY,
-          offsetX: ev.clientX - rect.left,
-          offsetY: ev.clientY - rect.top,
-          started: false,
-        };
-
-        const onMove = (e) => {
-          if(!activeDrag || e.pointerId !== activeDrag.pointerId) return;
-
-          const dx = Math.abs(e.clientX - activeDrag.startX);
-          const dy = Math.abs(e.clientY - activeDrag.startY);
-
-          // Drag erst nach kleiner Bewegung starten, damit Scrollen weiterhin klappt.
-          if(!activeDrag.started){
-            if(dx + dy < 10) return;
-            activeDrag.started = true;
-            activeDrag.sourceEl.classList.add('dragging');
-            startGhost(activeDrag.sourceEl);
-          }
-
-          // Ab hier ist es ein Drag: Scrollen/Textauswahl unterbinden.
-          e.preventDefault();
-          positionGhost(e.clientX, e.clientY);
-
-          const under = document.elementFromPoint(e.clientX, e.clientY);
-          setOver(closestDropTarget(under));
-        };
-
-        const onUp = (e) => {
-          if(!activeDrag || e.pointerId !== activeDrag.pointerId) return;
-          window.removeEventListener('pointermove', onMove);
-          window.removeEventListener('pointerup', onUp);
-          window.removeEventListener('pointercancel', onCancel);
-
-          const didDrag = activeDrag.started;
-          const cardId = activeDrag.cardId;
-
-          let target = null;
-          if(didDrag){
-            const under = document.elementFromPoint(e.clientX, e.clientY);
-            target = closestDropTarget(under);
-          }
-
-          cleanupDrag();
-          if(didDrag && target) moveCard(cardId, target.zoneId);
-        };
-
-        const onCancel = (e) => {
-          if(!activeDrag || e.pointerId !== activeDrag.pointerId) return;
-          window.removeEventListener('pointermove', onMove);
-          window.removeEventListener('pointerup', onUp);
-          window.removeEventListener('pointercancel', onCancel);
-          cleanupDrag();
-        };
-
-        window.addEventListener('pointermove', onMove, { passive: false });
-        window.addEventListener('pointerup', onUp, { passive: false });
-        window.addEventListener('pointercancel', onCancel, { passive: false });
-      });
+      // Tablet: Antippen = auswählen
+      el.addEventListener('pointerdown', (e) => {
+        if(!TAP_MODE) return;
+        if(e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+        e.preventDefault();
+        e.stopPropagation();
+        selectCard(org.id);
+      }, { passive: false });
 
       // Tastatur: Enter/Space = in die nächste Zone schieben
       el.tabIndex = 0;
@@ -822,31 +701,20 @@ const btnCheck = document.getElementById("btnCheck");
         }
       });
 
-      // Mouse-Hover: Bildvorschau anzeigen
+      // Mouse-Hover: Bildvorschau
       if(getImageInfo(org.id)){
         el.addEventListener('mouseenter', (e) => {
-          // Während Touch-Drag aktiv ist, nichts anzeigen
-          if(activeDrag?.started) return;
-          showHover(org.id, e.clientX, e.clientY, false);
+          if(TAP_MODE) return;
+          showHover(org.id, e.clientX, e.clientY);
         });
         el.addEventListener('mousemove', (e) => {
-          if(!hoverTipEl || !hoverTipEl.classList.contains('show')) return;
-          if(hoverPinned) return;
+          if(TAP_MODE) return;
+          if(!hoverTipEl.classList.contains('show')) return;
           positionHover(e.clientX, e.clientY);
         });
         el.addEventListener('mouseleave', () => {
-          if(!hoverPinned) hideHover(true);
-        });
-
-        // Touch: Tippen = Vorschau „anheften“/lösen
-        el.addEventListener('click', (e) => {
-          // Auf Desktop nur Hover; Click ignorieren
-          if(e.pointerType === 'mouse') return;
-          if(hoverPinned){
-            hideHover(true);
-          } else {
-            showHover(org.id, (e.clientX || 20), (e.clientY || 20), true);
-          }
+          if(TAP_MODE) return;
+          hideHover();
         });
       }
 
@@ -860,7 +728,8 @@ const btnCheck = document.getElementById("btnCheck");
       for(const org of ORGANISMS){
         const z = state.placement.get(org.id) || 'pool';
         const card = createCardEl(org);
-if(state.marksOn){
+
+        if(state.marksOn){
           const placed = state.placement.get(org.id) || 'pool';
           if(placed === org.correct) card.classList.add('correct');
           else if(placed !== 'pool') card.classList.add('wrong');
@@ -870,27 +739,45 @@ if(state.marksOn){
       }
 
       updateCounts();
+
+      // Status im Tablet-Modus, wenn nicht geprüft
+      if(TAP_MODE && !state.marksOn){
+        if(state.selectedCardId){
+          const org = ORGANISMS.find(o => o.id === state.selectedCardId);
+          setStatus(`Ausgewählt: ${org?.name ?? ''} – Ziel-Feld antippen.`, 'warn');
+        } else {
+          setStatus('Punkte: –');
+        }
+      }
+
+      // Wenn geprüft, Score aktuell halten
+      if(state.marksOn) updateScore();
     }
 
     function moveCard(cardId, zoneId){
       if(zoneId === 'pool') state.placement.delete(cardId);
       else state.placement.set(cardId, zoneId);
-      clearMarks();
+
+      if(state.selectedCardId === cardId) state.selectedCardId = null;
+
+      // Markierungen NICHT löschen: nach „Prüfen“ sollen Korrekturen möglich sein.
       renderAll();
     }
 
-    // ======= Drop targets =======
+    // ======= Drop targets (Desktop DnD) =======
     function wireDropTarget(targetEl, zoneId){
       targetEl.addEventListener('dragover', (e) => {
+        if(TAP_MODE) return;
         e.preventDefault();
         targetEl.classList.add('dragOver');
-        e.dataTransfer.dropEffect = 'move';
+        if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
       });
       targetEl.addEventListener('dragleave', () => targetEl.classList.remove('dragOver'));
       targetEl.addEventListener('drop', (e) => {
+        if(TAP_MODE) return;
         e.preventDefault();
         targetEl.classList.remove('dragOver');
-        const cardId = e.dataTransfer.getData('text/plain');
+        const cardId = e.dataTransfer?.getData('text/plain');
         if(!cardId) return;
         moveCard(cardId, zoneId);
       });
@@ -899,44 +786,207 @@ if(state.marksOn){
     document.querySelectorAll('.zone').forEach(zone => wireDropTarget(zone, zone.dataset.zone));
     wireDropTarget(poolEl, 'pool');
 
+    // ======= Tap-to-Move targets (Tablet) =======
+    function wireTapTarget(el, zoneId){
+      el.addEventListener('pointerdown', (e) => {
+        if(!TAP_MODE) return;
+        if(e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+        if(!state.selectedCardId) return;
+        e.preventDefault();
+        moveCard(state.selectedCardId, zoneId);
+      }, { passive: false });
+    }
+
+    document.querySelectorAll('.zone').forEach(zone => wireTapTarget(zone, zone.dataset.zone));
+    wireTapTarget(poolEl, 'pool');
+
+    // Tap ins Leere hebt Auswahl auf (Tablet)
+    document.addEventListener('pointerdown', (e) => {
+      if(!TAP_MODE) return;
+      if(e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+      const t = e.target;
+      if(t.closest && (t.closest('.card') || t.closest('.zone') || t.closest('#pool') || t.closest('button'))) return;
+      state.selectedCardId = null;
+      renderAll();
+    }, { passive: true });
+
+    // ======= Hilfe (Definitionen; an den Drop-Zonen) =======
+    const HELP = {
+      producer: {
+        title: 'Produzenten',
+        html: `
+          <h3 style="margin:0 0 10px; font-size:16px;">Produzenten</h3>
+          <div style="font-size:13px; line-height:1.55; color:rgba(231,238,252,.92);">
+            <p style="margin:0 0 10px;"><b>Produzenten</b> stellen (z.B. durch Fotosynthese) aus anorganischen Stoffen energiereiche organische Stoffe her.</p>
+            <p style="margin:0;"><b>Beispiele im See:</b> Wasserpflanzen, Algen (Phytoplankton).</p>
+          </div>
+        `
+      },
+      c1: {
+        title: 'Konsumenten 1. Ordnung',
+        html: `
+          <h3 style="margin:0 0 10px; font-size:16px;">Konsumenten 1. Ordnung</h3>
+          <div style="font-size:13px; line-height:1.55; color:rgba(231,238,252,.92);">
+            <p style="margin:0 0 10px;"><b>Konsumenten 1. Ordnung</b> (Primärkonsumenten) ernähren sich von Produzenten oder deren Teilen.</p>
+            <p style="margin:0;"><b>Beispiele:</b> Wasserflöhe, Schnecken (vereinfachte Darstellung).</p>
+          </div>
+        `
+      },
+      c2: {
+        title: 'Konsumenten 2. Ordnung',
+        html: `
+          <h3 style="margin:0 0 10px; font-size:16px;">Konsumenten 2. Ordnung</h3>
+          <div style="font-size:13px; line-height:1.55; color:rgba(231,238,252,.92);">
+            <p style="margin:0 0 10px;"><b>Konsumenten 2. Ordnung</b> (Sekundärkonsumenten) fressen Konsumenten 1. Ordnung.</p>
+            <p style="margin:0;"><b>Beispiele:</b> räuberische Insektenlarven, kleine Raubfische.</p>
+          </div>
+        `
+      },
+      c3: {
+        title: 'Konsumenten 3. Ordnung',
+        html: `
+          <h3 style="margin:0 0 10px; font-size:16px;">Konsumenten 3. Ordnung</h3>
+          <div style="font-size:13px; line-height:1.55; color:rgba(231,238,252,.92);">
+            <p style="margin:0 0 10px;"><b>Konsumenten 3. Ordnung</b> (Tertiärkonsumenten) fressen Konsumenten 2. Ordnung und stehen in dieser Vereinfachung häufig weit oben.</p>
+            <p style="margin:0;"><b>Beispiele:</b> Hecht, Graureiher, Fischotter.</p>
+          </div>
+        `
+      }
+    };
+
+    function ensureHelpModal(){
+      let modal = document.getElementById('helpModal');
+      if(modal) return modal;
+
+      modal = document.createElement('div');
+      modal.id = 'helpModal';
+      modal.style.position = 'fixed';
+      modal.style.inset = '0';
+      modal.style.zIndex = '10080';
+      modal.style.display = 'none';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.padding = '18px';
+      modal.style.background = 'rgba(0,0,0,.55)';
+      modal.setAttribute('role','dialog');
+      modal.setAttribute('aria-modal','true');
+
+      const card = document.createElement('div');
+      card.style.maxWidth = '760px';
+      card.style.width = '100%';
+      card.style.borderRadius = '18px';
+      card.style.border = '1px solid rgba(255,255,255,.16)';
+      card.style.background = 'rgba(17,26,44,.92)';
+      card.style.boxShadow = '0 18px 50px rgba(0,0,0,.6)';
+      card.style.backdropFilter = 'blur(8px)';
+      card.style.overflow = 'hidden';
+
+      const head = document.createElement('div');
+      head.style.display = 'flex';
+      head.style.alignItems = 'center';
+      head.style.justifyContent = 'space-between';
+      head.style.gap = '10px';
+      head.style.padding = '12px 14px';
+      head.style.borderBottom = '1px solid rgba(255,255,255,.12)';
+
+      const title = document.createElement('div');
+      title.id = 'helpModalTitle';
+      title.style.fontWeight = '750';
+      title.style.letterSpacing = '.2px';
+      title.textContent = 'Hilfe';
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'bad';
+      closeBtn.textContent = 'Schließen';
+      closeBtn.addEventListener('click', () => hideHelp());
+
+      head.appendChild(title);
+      head.appendChild(closeBtn);
+
+      const body = document.createElement('div');
+      body.id = 'helpModalBody';
+      body.style.padding = '14px';
+      body.innerHTML = '';
+
+      card.appendChild(head);
+      card.appendChild(body);
+      modal.appendChild(card);
+
+      modal.addEventListener('pointerdown', (e) => {
+        if(e.target === modal) hideHelp();
+      });
+
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function showHelp(topic){
+      const modal = ensureHelpModal();
+      const t = HELP[topic] ? topic : 'producer';
+      const titleEl = document.getElementById('helpModalTitle');
+      const bodyEl = document.getElementById('helpModalBody');
+      if(titleEl) titleEl.textContent = HELP[t].title;
+      if(bodyEl) bodyEl.innerHTML = HELP[t].html;
+      modal.style.display = 'flex';
+    }
+
+    function hideHelp(){
+      const modal = document.getElementById('helpModal');
+      if(modal) modal.style.display = 'none';
+    }
+
+    // Info-Buttons in den Drop-Zonen
+    document.querySelectorAll('.infoBtn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showHelp(btn.dataset.help);
+      });
+    });
+
+    // ESC schließt Hilfe
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') hideHelp();
+    });
+
     // ======= Buttons =======
-btnReset.addEventListener('click', () => {
-      // Karten bei jedem Neustart durchmischen
+    btnReset.addEventListener('click', () => {
       shuffle(ORGANISMS);
       state.placement.clear();
+      state.selectedCardId = null;
       clearMarks();
       renderAll();
     });
-btnCheck.addEventListener('click', () => {
-      let placed = 0;
-      let correct = 0;
+
+    btnCheck.addEventListener('click', () => {
       state.marksOn = true;
-
-      for(const org of ORGANISMS){
-        const z = state.placement.get(org.id) || 'pool';
-        if(z !== 'pool'){
-          placed++;
-          if(z === org.correct) correct++;
-        }
-      }
-
-      const pct = placed ? Math.round((correct / placed) * 100) : 0;
-      let kind = 'warn';
-      if(placed === 0) kind = '';
-      else if(pct >= 85) kind = 'good';
-      else if(pct < 60) kind = 'bad';
-
-      setStatus(`Punkte: ${correct}/${placed} korrekt (${pct}%)`, kind);
+      updateScore();
       renderAll();
     });
-// ======= Init =======
+
+    // ======= Mini-Selbsttests (Konsole) =======
+    function runSelfTests(){
+      console.assert(!!poolEl, 'poolEl fehlt');
+      console.assert(!!btnReset && !!btnCheck, 'Buttons fehlen');
+      console.assert(ORGANISMS.length > 0, 'Keine Organismen definiert');
+      const cards = document.querySelectorAll('.card');
+      console.assert(cards.length === ORGANISMS.length, 'Anzahl Karten stimmt nicht');
+    }
+
+    // ======= Init =======
     (function init(){
-      // Start: Karten durchmischen (damit Kategorien nicht geblockt erscheinen)
       shuffle(ORGANISMS);
       state.placement.clear();
+      state.selectedCardId = null;
       clearMarks();
       updateCounts();
       renderAll();
+      runSelfTests();
+
+      // ESC schließt Hover (Desktop)
+      document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') hideHover();
+      });
     })();
   </script>
 </body>
